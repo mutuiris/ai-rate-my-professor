@@ -14,6 +14,7 @@ export async function fetchGeminiData(query) {
         'Authorization': `Bearer ${GEMINI_API_KEY}`
       }
     });
+    return response.data;
   } catch (error) {
     console.error('Error fetching data from Gemini API:', error);
     throw error;
