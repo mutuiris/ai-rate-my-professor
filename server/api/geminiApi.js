@@ -1,20 +1,18 @@
-import axios from "axios";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-/* CONFIGURATION OF API */
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_BASE_URL = process.env.GEMINI_API_BASE_URL;
+
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 export async function fetchGeminiData(query) {
   try {
-    const response = await axios.get(`${GEMINI_API_BASE_URL}/data?query=${query}`, {
-      headers: {
-        'Authorization': `Bearer ${GEMINI_API_KEY}`
-      }
-    });
-    return response.data;
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateContent(query);
+    const response = await result.response;
+    return response.text();
   } catch (error) {
     console.error('Error fetching data from Gemini API:', error);
     throw error;
