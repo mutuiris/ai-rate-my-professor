@@ -1,13 +1,20 @@
 import express from 'express';
 import { fetchGeminiData } from '../api/geminiApi.js';
+import { queryPineconeForProfessor } from '../service/pineconeService.js';
 
 const router = express.Router();
 
 router.post('/api/chat', async (req, res) => {
   const userMessage = req.body.message;
   try {
-    const geminiResponse = await fetchGeminiData(userMessage);
-    res.json({ reply: geminiResponse });
+    // Use Gemini AI to analyze the user query
+    const refinedQuery = await fetchGeminiData(userMessage);
+
+    // Query Pinecone using the refined query
+    const professorRecommendations = await queryPineconeForProfessor(refinedQuery);
+
+    // Return the recommendations to the user
+    res.json({ reply: professorRecommendations });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch data from Gemini API' });
   }
