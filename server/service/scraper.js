@@ -7,7 +7,9 @@ export async function scrapeProfessorData(url) {
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     const professorData = await page.evaluate(() => {
-      const name = document.querySelector('h1')?.innerText;
+      const name = document.querySelector('h1')?.innerText?.trim() ||
+      document.querySelector('.professor-name')?.innerText?.trim() ||
+      'Unknown Professor';;
       const department = document.querySelector('.department')?.innerText;
       const ratings = document.querySelector('.ratings')?.innerText;
       const reviews = Array.from(document.querySelectorAll('.review')).map(review => review.innerText);
