@@ -20,6 +20,10 @@ import ListItemText from "@mui/material/ListItemText";
 import ChatIcon from "@mui/icons-material/Chat";
 import Chat from "../components/Chat"
 import AddIcon from "@mui/icons-material/Add";
+import PersonIcon from "@mui/icons-material/Person";
+import { useRouter } from "next/navigation";
+
+
 
 const drawerWidth = 240;
 
@@ -68,6 +72,13 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 }));
 
 export default function PersistentDrawerLeft() {
+
+  const router = useRouter();
+
+  const handleProfileClick = () => {
+    router.push("/profile");
+  };
+
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
 
@@ -105,6 +116,10 @@ export default function PersistentDrawerLeft() {
           "& .MuiDrawer-paper": {
             width: drawerWidth,
             boxSizing: "border-box",
+            display: "flex",
+            flexDirection: "column", // Make the drawer's content a column to push the profile to the bottom
+            justifyContent: "space-between", // Space between the chat list and the profile section
+            gap:2
           },
         }}
         variant="persistent"
@@ -121,7 +136,7 @@ export default function PersistentDrawerLeft() {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <List>
+        <List sx={{flexGrow:1}}>
           {["New Chat", "Chat 1", "Chat 2", "Chat 3"].map((text) => (
             <ListItem key={text} disablePadding>
               <ListItemButton>
@@ -132,6 +147,18 @@ export default function PersistentDrawerLeft() {
               </ListItemButton>
             </ListItem>
           ))}
+        </List>
+        <Divider />
+        {/* Profile Section */}
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleProfileClick}>
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary="Profile" />
+            </ListItemButton>
+          </ListItem>
         </List>
       </Drawer>
       <Main open={open}>
