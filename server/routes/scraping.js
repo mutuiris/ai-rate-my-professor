@@ -37,3 +37,5 @@ router.post("/api/scrape", async (req, res) => {
     res.status(500).json({ error: "An unexpected error occurred" });
   }
 });
+
+export default router;
