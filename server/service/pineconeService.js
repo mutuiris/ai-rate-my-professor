@@ -28,3 +28,32 @@ export async function addProfessorToPinecone(professorData) {
     throw error;
   }
 }
+
+export async function queryPineconeForProfessor(userQuery) {
+  try {
+    // Initialize Pinecone index
+    const index = pc.Index('rag');
+
+    // Generate embeddings for user query
+    const queryVector = await getEmbeddings(userQuery);
+
+    // Query Pinecone for similar professor data
+    const queryResponse = await index.query({
+      vector: queryVector,
+      topK: 5,
+      includeMetadata: true,
+    });
+
+    // Extract the results and return them
+    const results = queryResponse.matches.map(match => ({
+      name: match.metadata.name,
+      department: match.metadata.department,
+      rating: match.metadata.rating,
+      similarity: match.score, // Similarity score from Pinecone
+    }));
+    return results;
+  } catch (error) {
+    console.error('Error querying Pinecone:', error);
+    throw error;
+  }
+}
