@@ -1,11 +1,10 @@
-import dotenv from "dotenv";
+import fetch from "node-fetch";
+globalThis.fetch = fetch;
+
 import { Pinecone } from "@pinecone-database/pinecone";
 
-dotenv.config();
-
 const pc = new Pinecone({
-  environment: process.env.PINECONE_ENVIRONMENT,
-  apiKey: process.env.PINECONE_API_KEY,
+  apiKey: process.env.PINECONE_API_KEY
 });
 
 export default pc;

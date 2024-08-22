@@ -1,5 +1,5 @@
 import pc from '../config/pinecone.js';
-import { getEmbeddings } from './embeddingService.js';
+import { getEmbedding } from './embeddingService.js';
 
 // Function to add Professor data to Pinecone
 export async function addProfessorToPinecone(professorData) {
@@ -7,17 +7,23 @@ export async function addProfessorToPinecone(professorData) {
     // Initialize Pinecone index
     const index = pc.Index('rag');
 
+    // Check if reviewText exists and is not empty
+    if (!professorData.review || professorData.review.trim() === '') {
+      throw new Error('Review text is missing or empty');
+    }
+
     // Generate embeddings for professor review text
-    const vector = await getEmbeddings(professorData.reviewText);
+    const vector = await getEmbedding(professorData.review);
 
     // Prepare data to be stored in Pinecone
     const pineconeData = {
-      id: professorData.id,
+      id: professorData.name.replace(/\s+/g, '-').toLowerCase(),
       values: vector,
       metadata: {
         name: professorData.name,
         department: professorData.department,
         rating: professorData.rating,
+        review: professorData.review,
       }
     };
     // Upsert (add or update) the data to Pinecone
@@ -35,7 +41,7 @@ export async function queryPineconeForProfessor(userQuery) {
     const index = pc.Index('rag');
 
     // Generate embeddings for user query
-    const queryVector = await getEmbeddings(userQuery);
+    const queryVector = await getEmbedding(userQuery);
 
     // Query Pinecone for similar professor data
     const queryResponse = await index.query({
