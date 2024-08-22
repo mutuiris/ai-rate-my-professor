@@ -1,5 +1,5 @@
 import express from "express";
-import { scrapeAndStoreProfessorData } from "../services/scraper.js";
+import { scrapeProfessorData } from "../services/scraper.js";
 
 const router = express.Router();
 
@@ -11,7 +11,7 @@ router.post("/api/scrape", async (req, res) => {
       return res.status(400).json({ error: "URL is required" });
     }
 
-    const result = await scrapeAndStoreProfessorData(url);
+    const result = await scrapeProfessorData(url);
 
     res.status(200).json({
       message: "Professor data scraped and stored successfully",
