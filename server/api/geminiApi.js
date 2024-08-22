@@ -15,6 +15,6 @@ export async function fetchGeminiData(query) {
     return response.text();
   } catch (error) {
     console.error('Error fetching data from Gemini API:', error);
-    throw error;
+    throw new Error('Failed to process your request with Gemini AI. Please try again.');
   }
 }

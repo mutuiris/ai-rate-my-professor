@@ -16,7 +16,7 @@ router.post('/api/chat', async (req, res) => {
     // Return the recommendations to the user
     res.json({ reply: JSON.stringify(professorRecommendations) });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch data from Gemini API' });
+    res.status(500).json({ error: 'Failed to process your request. Please try again.' });
   }
 });
 

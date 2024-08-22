@@ -60,6 +60,6 @@ export async function queryPineconeForProfessor(userQuery) {
     return results;
   } catch (error) {
     console.error('Error querying Pinecone:', error);
-    throw error;
+    throw new Error('Failed to retrieve data from Pinecone. Please try again later.');
   }
 }
