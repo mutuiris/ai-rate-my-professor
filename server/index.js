@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import chatRoutes from './routes/chat.js';
 import professorRoutes from './routes/professor.js';
+import scrapingRoutes from './routes/scraping.js';
 import './config/pinecone.js';
 import './config/googleCloud.js';
 
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/', chatRoutes);
 app.use('/', professorRoutes);
+app.use('/', scrapingRoutes);
 
 app.listen(port, () => {
   console.log(`Professor rating app listening at http://localhost:${port}`);
