@@ -14,7 +14,7 @@ router.post('/api/chat', async (req, res) => {
     const professorRecommendations = await queryPineconeForProfessor(refinedQuery);
 
     // Return the recommendations to the user
-    res.json({ reply: professorRecommendations });
+    res.json({ reply: JSON.stringify(professorRecommendations) });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch data from Gemini API' });
   }

@@ -10,13 +10,36 @@ function ChatPage() {
 
   const [newMessage, setNewMessage] = useState("");
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (newMessage.trim()) {
-      setMessages([
-        ...messages,
-        { id: messages.length + 1, text: newMessage, sender: "user" },
-      ]);
+      const userMessage = { id: messages.length + 1, text: newMessage, sender: "user" };
+      setMessages(prevMessages => [...prevMessages, userMessage]);
       setNewMessage("");
+
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message: newMessage }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const recommendations = JSON.parse(data.reply);
+        const formattedReply = recommendations.map(prof => 
+          `${prof.name} (${prof.department || 'Unknown Department'}): Rating ${prof.rating}, Similarity: ${prof.similarity.toFixed(2)}`
+        ).join('\n');
+
+        setMessages(prevMessages => [...prevMessages, { id: prevMessages.length + 1, text: formattedReply, sender: "other" }]);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setMessages(prevMessages => [...prevMessages, { id: prevMessages.length + 1, text: "Sorry, there was an error processing your message.", sender: "other" }]);
+      }
     }
   };
 

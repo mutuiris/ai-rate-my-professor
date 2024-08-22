@@ -46,7 +46,7 @@ export async function queryPineconeForProfessor(userQuery) {
     // Query Pinecone for similar professor data
     const queryResponse = await index.query({
       vector: queryVector,
-      topK: 5,
+      topK: 20,
       includeMetadata: true,
     });
 
