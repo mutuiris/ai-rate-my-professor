@@ -69,3 +69,33 @@ export async function queryPineconeForProfessor(userQuery) {
     throw new Error('Failed to retrieve data from Pinecone. Please try again later.');
   }
 }
+
+export async function querySentimentTrends(professorName) {
+  try {
+    // Initialize Pinecone index
+    const index = pc.Index('rag');
+
+    // Query Pinecone for professor data by name, sorted by timestamp
+    const queryResponse = await index.query({
+      filter: {
+        name, professorName
+      },
+      includeMetadata: true
+    });
+
+    // Extract sentiment data and timestamps
+    const trends = queryResponse.matches.map(match = ({
+      sentiment: match.metadata.sentiment,
+      rating: match.metadata.rating,
+      timestamp: match.metadata.timestamp
+    }));
+
+    // Sort by timestamp to show trends over time
+    trends.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    return trends;
+  } catch (error) {
+    console.error('Error querying sentiment trends:', error);
+    throw new Error('Failed to retrieve sentiment trends. Please try again later.');
+  }
+}
