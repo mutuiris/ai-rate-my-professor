@@ -2,10 +2,7 @@ import React, { useState } from "react";
 
 function ChatPage() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hi there!", sender: "other" },
-    { id: 2, text: "Hello!", sender: "user" },
-    { id: 3, text: "How are you?", sender: "other" },
-    { id: 4, text: "I'm good, thanks! How about you?", sender: "user" },
+    { id: 1, text: "Hi there! How can I help you find a professor?", sender: "other" },
   ]);
 
   const [newMessage, setNewMessage] = useState("");
@@ -31,14 +28,16 @@ function ChatPage() {
 
         const data = await response.json();
         const recommendations = JSON.parse(data.reply);
-        const formattedReply = recommendations.map(prof => 
+        
+        let formattedReply = "Here are some professor recommendations based on your query:\n\n";
+        formattedReply += recommendations.map(prof => 
           `${prof.name} (${prof.department || 'Unknown Department'}): Rating ${prof.rating}, Similarity: ${prof.similarity.toFixed(2)}`
         ).join('\n');
 
         setMessages(prevMessages => [...prevMessages, { id: prevMessages.length + 1, text: formattedReply, sender: "other" }]);
       } catch (error) {
         console.error('Error sending message:', error);
-        setMessages(prevMessages => [...prevMessages, { id: prevMessages.length + 1, text: "Sorry, there was an error processing your message.", sender: "other" }]);
+        setMessages(prevMessages => [...prevMessages, { id: prevMessages.length + 1, text: "Sorry, there was an error processing your request. Please try again.", sender: "other" }]);
       }
     }
   };
@@ -69,7 +68,7 @@ function ChatPage() {
         <div className="flex items-center w-full">
           <input
             type="text"
-            placeholder="Type a message..."
+            placeholder="Search for professors or ask a question..."
             className="flex-grow p-2 border rounded-full focus:outline-none focus:ring focus:border-blue-300"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
