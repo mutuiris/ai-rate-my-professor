@@ -1,9 +1,15 @@
 import puppeteer from "puppeteer";
 
 export async function scrapeProfessorData(url) {
+  let browser;
   try {
-    const browser = await puppeteer.launch();
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(60000); // Increase timeout to 60 seconds
+
     await page.goto(url, { waitUntil: 'networkidle0' });
 
     const professorData = await page.evaluate(() => {
@@ -38,8 +44,6 @@ export async function scrapeProfessorData(url) {
       return { name, department, ratings, reviews };
     });
 
-    await browser.close();
-
     if (professorData.name === 'Unknown Professor' && !professorData.department) {
       throw new Error('Unable to scrape professor data');
     }
@@ -47,6 +51,10 @@ export async function scrapeProfessorData(url) {
     return professorData;
   } catch (error) {
     console.error("Scraping error:", error);
-    throw { name: 'ScrapingError', message: error.message };
+    throw { name: 'ScrapingError', message: error.message, url };
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
