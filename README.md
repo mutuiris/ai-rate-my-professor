@@ -17,7 +17,6 @@ An AI-powered system for professor ratings and recommendations. This project is 
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
     - [Running the Application](#running-the-application)
-  - [Project Structure](#project-structure)
   - [Features](#features)
   - [Usage](#usage)
     - [Sentiment Analysis](#sentiment-analysis)
@@ -117,6 +116,7 @@ ai-rate-my-professor/
     ├── routes/
     │   └── chat.js
     └── service/
+```
 
 ## Features
 
