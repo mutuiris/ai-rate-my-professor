@@ -6,24 +6,24 @@ import Drawer from "@mui/material/Drawer";
 import CssBaseline from "@mui/material/CssBaseline";
 import MuiAppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
-import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import HistoryIcon from "@mui/icons-material/History";
+import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import ChatIcon from "@mui/icons-material/Chat";
-import Chat from "../components/Chat"
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
+import Chat from "../components/Chat";
+import History from "../components/History"; // Import your History component
 import { useRouter } from "next/navigation";
-
-
 
 const drawerWidth = 240;
 
@@ -49,6 +49,7 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
+  backgroundColor:'#0B66C2',
   transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -72,41 +73,54 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 }));
 
 export default function PersistentDrawerLeft() {
-
   const router = useRouter();
+  const theme = useTheme();
+
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [historyOpen, setHistoryOpen] = React.useState(false);
+
+  const handleDrawerOpen = () => {
+    setMenuOpen(true);
+  };
+
+  const handleDrawerClose = () => {
+    setMenuOpen(false);
+  };
+
+  const toggleHistoryDrawer = () => {
+    setHistoryOpen(!historyOpen);
+  };
 
   const handleProfileClick = () => {
     router.push("/profile");
   };
 
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
-
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBar position="fixed" open={open}>
+      <AppBar position="fixed" open={menuOpen}>
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerOpen}
             edge="start"
-            sx={{ mr: 2, ...(open && { display: "none" }) }}
+            sx={{ mr: 2, ...(menuOpen && { display: "none" }) }}
           >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div">
             Professora AI
           </Typography>
+          <IconButton
+            color="inherit"
+            aria-label="open history"
+            onClick={toggleHistoryDrawer}
+            edge="end"
+            sx={{ ml: "auto" }}
+          >
+            <HistoryIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -117,14 +131,14 @@ export default function PersistentDrawerLeft() {
             width: drawerWidth,
             boxSizing: "border-box",
             display: "flex",
-            flexDirection: "column", // Make the drawer's content a column to push the profile to the bottom
-            justifyContent: "space-between", // Space between the chat list and the profile section
-            gap:2
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 2,
           },
         }}
         variant="persistent"
         anchor="left"
-        open={open}
+        open={menuOpen}
       >
         <DrawerHeader>
           <IconButton onClick={handleDrawerClose}>
@@ -136,7 +150,7 @@ export default function PersistentDrawerLeft() {
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <List sx={{flexGrow:1}}>
+        <List sx={{ flexGrow: 1 }}>
           {["New Chat", "Chat 1", "Chat 2", "Chat 3"].map((text) => (
             <ListItem key={text} disablePadding>
               <ListItemButton>
@@ -149,7 +163,6 @@ export default function PersistentDrawerLeft() {
           ))}
         </List>
         <Divider />
-        {/* Profile Section */}
         <List>
           <ListItem disablePadding>
             <ListItemButton onClick={handleProfileClick}>
@@ -161,7 +174,17 @@ export default function PersistentDrawerLeft() {
           </ListItem>
         </List>
       </Drawer>
-      <Main open={open}>
+      <Drawer anchor="right" open={historyOpen} onClose={toggleHistoryDrawer}>
+        <Box
+          sx={{ width: 250 }}
+          role="presentation"
+          onClick={toggleHistoryDrawer}
+          onKeyDown={toggleHistoryDrawer}
+        >
+          <History /> {/* Render History component here */}
+        </Box>
+      </Drawer>
+      <Main open={menuOpen}>
         <DrawerHeader />
         <Chat /> {/* Render ChatPage here */}
       </Main>
