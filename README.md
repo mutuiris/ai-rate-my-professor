@@ -173,8 +173,8 @@ The following environment variables need to be set in the `.env` files:
 
 ## Authors
 
-- **Addy Mutuiri** - *Backend Development* - [YourGitHubUsername](https://github.com/addymwenda12)
-- **Tracy Karanja** - *Frontend Development* - [ContributorGitHubUsername](https://github.com/TracyK10)
+- **Addy Mutuiri** - *Backend Development* - [addymwenda12](https://github.com/addymwenda12)
+- **Tracy Karanja** - *Frontend Development* - [TracyK10](https://github.com/TracyK10)
 
 ## Troubleshooting
 
