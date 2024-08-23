@@ -1,5 +1,6 @@
 import pc from '../config/pinecone.js';
 import { getEmbedding } from './embeddingService.js';
+import { analyzeSentiment } from './sentimentService.js';
 
 // Function to add Professor data to Pinecone
 export async function addProfessorToPinecone(professorData) {
@@ -15,6 +16,9 @@ export async function addProfessorToPinecone(professorData) {
     // Generate embeddings for professor review text
     const vector = await getEmbedding(professorData.review);
 
+    // Performs sentiment analysis on the review text
+    const sentiment = await analyzeSentiment(professorData.review);
+
     // Prepare data to be stored in Pinecone
     const pineconeData = {
       id: professorData.name.replace(/\s+/g, '-').toLowerCase(),
@@ -24,6 +28,8 @@ export async function addProfessorToPinecone(professorData) {
         department: professorData.department,
         rating: professorData.rating,
         review: professorData.review,
+        sentiment: sentiment, // Store sentiment (e.g., 'positive', 'neutral', 'negative')
+        timestamp: new Date().toISOString // Store the current timestamp for trend tracking
       }
     };
     // Upsert (add or update) the data to Pinecone
