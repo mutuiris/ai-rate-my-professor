@@ -6,11 +6,19 @@ const router = express.Router();
 
 router.post("/api/chat", async (req, res) => {
   const userMessage = req.body.message;
+  
+  // Helper function moved inside the router.post callback
+  function isGreetingOrGeneralQuestion(message) {
+    const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening'];
+    return greetings.some(greeting => message.toLowerCase().includes(greeting)) || 
+           message.toLowerCase().includes('how are you');
+  }
+
   try {
     // Check if it's a greeting or general question
     if (isGreetingOrGeneralQuestion(userMessage)) {
       const response = await fetchGeminiData(`Respond to this message: ${userMessage}`);
-      return res.json({ reply: response });
+      return res.json({ reply: [{ text: response, type: 'general' }] });
     }
 
     const refinedQuery = await fetchGeminiData(
@@ -47,45 +55,42 @@ router.post("/api/chat", async (req, res) => {
     } catch (parseError) {
       console.error("JSON Parse Error:", parseError);
       console.error("Problematic JSON string:", personalizedRecommendations);
-      throw new Error("Invalid JSON format in response: " + parseError.message);
+      throw new Error("We're having trouble processing the recommendations. Please try your request again.");
     }
 
     if (
       !Array.isArray(formattedRecommendations) ||
       formattedRecommendations.length !== 5
     ) {
-      throw new Error("Invalid response format or incorrect number of recommendations");
+      throw new Error("We couldn't generate the expected number of recommendations. Please try your request again.");
     }
 
     // Validate each recommendation object
     formattedRecommendations.forEach((rec, index) => {
       if (!rec.name || rec.rating === undefined || !rec.recommendation) {
-        throw new Error(`Missing required fields in recommendation at index ${index}`);
+        throw new Error(`We're missing some information for one of the recommendations. Please try your request again.`);
       }
       rec.department = rec.department || "N/A";
       if (typeof rec.rating !== 'number') {
         rec.rating = parseFloat(rec.rating);
         if (isNaN(rec.rating)) {
-          throw new Error(`Invalid rating format for recommendation at index ${index}`);
+          throw new Error(`We encountered an issue with a professor's rating. Please try your request again.`);
         }
       }
     });
 
-    res.json({ reply: formattedRecommendations });
+    res.json({ reply: formattedRecommendations.map(rec => ({ ...rec, type: 'recommendation' })) });
   } catch (error) {
     console.error("Error processing chat request:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to process your request. Please try again.", details: error.message });
+    res.status(500).json({ 
+      reply: [{ 
+        text: "I'm sorry, but I couldn't process your request at this time. Please try again or rephrase your question.",
+        type: 'error'
+      }]
+    });
   } finally {
     console.log("Chat request processing completed");
   }
 });
-
-function isGreetingOrGeneralQuestion(message) {
-  const greetings = ['hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening'];
-  return greetings.some(greeting => message.toLowerCase().includes(greeting)) || 
-         message.toLowerCase().includes('how are you');
-}
 
 export default router;

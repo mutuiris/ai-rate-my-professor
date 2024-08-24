@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaUser } from "react-icons/fa";
 
 function ChatPage() {
@@ -7,14 +7,17 @@ function ChatPage() {
       id: 1,
       text: "Hi there! How can I help you find a professor?",
       sender: "other",
-    },
-    { id: 2, text: "Hi there!", sender: "other", name: "PA" },
-    { id: 3, text: "Hello!", sender: "user" },
-    { id: 4, text: "How are you?", sender: "other", name: "PA" },
-    { id: 5, text: "I'm good, thanks! How about you?", sender: "user" },
+      name: "PA"
+    }
   ]);
-
   const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(scrollToBottom, [messages]);
 
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
@@ -43,35 +46,39 @@ function ChatPage() {
         }
 
         const data = await response.json();
-        const recommendations = data.reply;
-
-        const formattedReply = recommendations
-          .map(
-            (prof) =>
-              `${prof.name} (${
-                prof.department || "Unknown Department"
-              }): Rating ${prof.rating}, Similarity: ${
-                prof.similarity ? prof.similarity.toFixed(2) : "N/A"
-              }`
-          )
-          .join("\n");
-
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          {
-            id: prevMessages.length + 1,
-            text: formattedReply,
-            sender: "other",
-            name: "PA",
-          },
-        ]);
+        
+        if (Array.isArray(data.reply)) {
+          // Handle professor recommendations
+          data.reply.forEach((prof) => {
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              {
+                id: prevMessages.length + 1,
+                text: `${prof.name} (${prof.department || "Unknown Department"}): Rating ${prof.rating}, ${prof.recommendation || ''}`,
+                sender: "other",
+                name: "PA",
+              },
+            ]);
+          });
+        } else {
+          // Handle general responses
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              id: prevMessages.length + 1,
+              text: data.reply,
+              sender: "other",
+              name: "PA",
+            },
+          ]);
+        }
       } catch (error) {
         console.error("Error sending message:", error);
         setMessages((prevMessages) => [
           ...prevMessages,
           {
             id: prevMessages.length + 1,
-            text: "Sorry, there was an error processing your message.",
+            text: "Sorry, there was an error processing your message. Please try again.",
             sender: "other",
             name: "PA",
           },
@@ -117,6 +124,7 @@ function ChatPage() {
             )}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
       <div className="fixed bottom-0 inset-x-0 px-4 py-5 bg-white border border-gray-300 rounded-t-lg">
         <div className="flex items-center w-full max-w-lg mx-auto">
@@ -126,6 +134,11 @@ function ChatPage() {
             className="flex-grow p-2 border rounded-full focus:outline-none focus:ring focus:border-blue-300 text-sm md:text-base"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage();
+              }
+            }}
           />
           <button
             onClick={handleSendMessage}
