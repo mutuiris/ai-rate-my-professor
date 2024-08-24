@@ -1,11 +1,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import fetch from 'node-fetch';
 import chatRoutes from './routes/chat.js';
 import professorRoutes from './routes/professor.js';
 import scrapingRoutes from './routes/scraping.js';
 import './config/pinecone.js';
 import './config/googleCloud.js';
+
+global.fetch = fetch;
 
 dotenv.config();
 
