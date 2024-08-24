@@ -52,7 +52,7 @@ export async function queryPineconeForProfessor(userQuery) {
     // Query Pinecone for similar professor data
     const queryResponse = await index.query({
       vector: queryVector,
-      topK: 20,
+      topK: 100,
       includeMetadata: true,
     });
 
@@ -63,6 +63,10 @@ export async function queryPineconeForProfessor(userQuery) {
       rating: match.metadata.rating,
       similarity: match.score, // Similarity score from Pinecone
     }));
+
+    // Sort results by rating (ascending order)
+    results.sort((a, b) => a.rating - b.rating);
+
     return results;
   } catch (error) {
     console.error("Error querying Pinecone:", error);
