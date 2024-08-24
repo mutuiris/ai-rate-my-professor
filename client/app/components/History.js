@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@clerk/nextjs";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -10,6 +11,20 @@ import Typography from "@mui/material/Typography";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 
 function History() {
+  const { userId } = useAuth;
+  const [chatHistory, setChatHistory] = useState([]);
+
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (userId) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`);
+        const data = await response.json();
+        setChatHistory(data.chatHistory);
+      }
+    };
+
+    fetchChatHistory();
+  }, [userId]);
   const professionalTier = {
     title: "Professional",
     price: "15",
