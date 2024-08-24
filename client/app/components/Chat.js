@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaUser } from "react-icons/fa";
+import { useAuth } from "@clerk/nextjs";
 
 function ChatPage() {
+  const { userId } = useAuth();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -37,7 +39,7 @@ function ChatPage() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ message: newMessage }),
+            body: JSON.stringify({ message: newMessage, userId }),
           }
         );
 
