@@ -10,7 +10,6 @@ router.post("/api/chat", async (req, res) => {
   const userMessage = req.body.message;
   const userId = req.body.userId;
 
-  // Helper function moved inside the router.post callback
   function isGreetingOrGeneralQuestion(message) {
     const greetings = [
       "hi",
@@ -31,7 +30,6 @@ router.post("/api/chat", async (req, res) => {
     let response;
     let replyType = "general";
 
-    // Check if it's a greeting or general question
     if (isGreetingOrGeneralQuestion(userMessage)) {
       response = await fetchGeminiData(
         `Respond to this message: ${userMessage}`
@@ -48,47 +46,53 @@ router.post("/api/chat", async (req, res) => {
       console.log("Pinecone Recommendations:", professorRecommendations);
 
       const personalizedRecommendations = await fetchGeminiData(`
-        Generate personalized professor recommendations based on these results:
-        ${JSON.stringify(professorRecommendations)}
+        Based on these professor results: ${JSON.stringify(
+          professorRecommendations
+        )}
         
-        Format the response as a valid JSON array of objects, each containing:
-        - name: professor's name
-        - department: professor's department (use "N/A" if not available)
-        - rating: professor's rating (as a number)
-        - recommendation: a brief personalized recommendation
+        Answer the following query: ${userMessage}
         
-        Ensure the response is a properly formatted JSON string without any additional text before or after the JSON data.
-        The response should contain exactly 5 professor recommendations.
-        Do not use markdown formatting in your response.
+        If the query is asking for a specific ranking (e.g., lowest or highest rated), provide that information first.
+        Then, provide up to 5 relevant professor recommendations.
+        
+        Format the response as a valid JSON object containing:
+        - answer: a direct answer to the query
+        - recommendations: an array of up to 5 professor objects, each containing:
+          - name: professor's name
+          - department: professor's department (use "N/A" if not available)
+          - rating: professor's rating (as a number)
+          - recommendation: a brief personalized recommendation
+        
+        Ensure the response is a properly formatted JSON string without any additional text.
       `);
 
       console.log("Raw Gemini Response:", personalizedRecommendations);
 
-      let formattedRecommendations;
+      let formattedResponse;
       try {
         const cleanedResponse = personalizedRecommendations
           .replace(/```json\n|\n```/g, "")
           .trim();
-        formattedRecommendations = JSON.parse(cleanedResponse);
+        formattedResponse = JSON.parse(cleanedResponse);
       } catch (parseError) {
         console.error("JSON Parse Error:", parseError);
         console.error("Problematic JSON string:", personalizedRecommendations);
         throw new Error(
-          "We're having trouble processing the recommendations. Please try your request again."
+          "We're having trouble processing the response. Please try your request again."
         );
       }
 
       if (
-        !Array.isArray(formattedRecommendations) ||
-        formattedRecommendations.length !== 5
+        !formattedResponse.answer ||
+        !Array.isArray(formattedResponse.recommendations)
       ) {
         throw new Error(
-          "We couldn't generate the expected number of recommendations. Please try your request again."
+          "Invalid response format. Please try your request again."
         );
       }
 
       // Validate each recommendation object
-      formattedRecommendations.forEach((rec, index) => {
+      formattedResponse.recommendations.forEach((rec, index) => {
         if (!rec.name || rec.rating === undefined || !rec.recommendation) {
           throw new Error(
             `We're missing some information for one of the recommendations. Please try your request again.`
@@ -105,10 +109,15 @@ router.post("/api/chat", async (req, res) => {
         }
       });
 
-      response = formattedRecommendations.map((rec) => ({
-        ...rec,
-        type: "recommendation",
-      }));
+      response = {
+        reply: [
+          { type: "answer", text: formattedResponse.answer },
+          ...formattedResponse.recommendations.map((rec) => ({
+            ...rec,
+            type: "recommendation",
+          })),
+        ],
+      };
       replyType = "recommendation";
     }
 
@@ -125,7 +134,7 @@ router.post("/api/chat", async (req, res) => {
       console.warn("Chat history not saved: userId is undefined");
     }
 
-    res.json({ reply: response });
+    res.json(response);
   } catch (error) {
     console.error("Error processing chat request:", error);
     res.status(500).json({
