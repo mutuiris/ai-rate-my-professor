@@ -36,6 +36,8 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
       duration: theme.transitions.duration.leavingScreen,
     }),
     marginLeft: `-${drawerWidth}px`,
+    background:
+      "linear-gradient(180deg, rgba(218,235,253,1) 0%, rgba(255,255,255,1) 35%, rgba(255,255,255,1) 100%)",
     ...(open && {
       transition: theme.transitions.create("margin", {
         easing: theme.transitions.easing.easeOut,
@@ -49,7 +51,8 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
-  backgroundColor:'#0B66C2',
+  boxShadow: "0 2px 4px rgba(0,0,0,0.1)", // Slight shadow for depth
+  borderRadius: "8px", // Rounded corners
   transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -98,7 +101,29 @@ export default function PersistentDrawerLeft() {
   return (
     <Box sx={{ display: "flex" }}>
       <CssBaseline />
-      <AppBar position="fixed" open={menuOpen}>
+      <AppBar
+        position="fixed"
+        open={menuOpen}
+        sx={{
+          width: { xs: "calc(100% - 32px)", sm: "calc(100% - 64px)" },
+          ml: { xs: "16px", sm: "32px" },
+          mr: { xs: "16px", sm: "32px" },
+          mt: 2,
+          borderRadius: "30px",
+          backgroundColor: "#E7F2FE",
+          color: "#000",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+          transition: theme.transitions.create(["margin", "width"], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
+          ...(menuOpen && {
+            width: `calc(100% - ${drawerWidth}px - 64px)`,
+            ml: `${drawerWidth}px`,
+          }),
+        }}
+      >
         <Toolbar>
           <IconButton
             color="inherit"
@@ -123,6 +148,7 @@ export default function PersistentDrawerLeft() {
           </IconButton>
         </Toolbar>
       </AppBar>
+
       <Drawer
         sx={{
           width: drawerWidth,
@@ -134,6 +160,7 @@ export default function PersistentDrawerLeft() {
             flexDirection: "column",
             justifyContent: "space-between",
             gap: 2,
+            backgroundColor: "#f0f0f0",
           },
         }}
         variant="persistent"
@@ -153,7 +180,13 @@ export default function PersistentDrawerLeft() {
         <List sx={{ flexGrow: 1 }}>
           {["New Chat", "Chat 1", "Chat 2", "Chat 3"].map((text) => (
             <ListItem key={text} disablePadding>
-              <ListItemButton>
+              <ListItemButton
+                sx={{
+                  "&:hover": {
+                    backgroundColor: "#e0e0e0", // Darker on hover
+                  },
+                }}
+              >
                 <ListItemIcon>
                   {text === "New Chat" ? <AddIcon /> : <ChatIcon />}
                 </ListItemIcon>
@@ -174,9 +207,10 @@ export default function PersistentDrawerLeft() {
           </ListItem>
         </List>
       </Drawer>
+
       <Drawer anchor="right" open={historyOpen} onClose={toggleHistoryDrawer}>
         <Box
-          sx={{ width: 250 }}
+          sx={{ width: 350 }}
           role="presentation"
           onClick={toggleHistoryDrawer}
           onKeyDown={toggleHistoryDrawer}
