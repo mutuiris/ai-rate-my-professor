@@ -17,7 +17,7 @@ export async function processProfessorPage(url) {
     const formattedData = {
       id: `prof_${Date.now()}`, //Create a unique ID for the professor
       name: professorData.name,
-      department: professorData.department,
+      // department: professorData.department,
       rating: parseFloat(professorData.rating), // Converting rating to a float if necessary
       review: professorData.reviews.join(' ') // Combine all reviews into a string
     };

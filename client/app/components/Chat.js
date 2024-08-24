@@ -43,16 +43,16 @@ function ChatPage() {
         }
 
         const data = await response.json();
-        const recommendations = JSON.parse(data.reply);
+        const recommendations = data.reply;
 
         const formattedReply = recommendations
           .map(
             (prof) =>
               `${prof.name} (${
                 prof.department || "Unknown Department"
-              }): Rating ${prof.rating}, Similarity: ${prof.similarity.toFixed(
-                2
-              )}`
+              }): Rating ${prof.rating}, Similarity: ${
+                prof.similarity ? prof.similarity.toFixed(2) : "N/A"
+              }`
           )
           .join("\n");
 
