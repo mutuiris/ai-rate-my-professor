@@ -112,18 +112,18 @@ function ChatPage() {
           </div>
         ))}
       </div>
-      <div className="fixed bottom-0 w-4/5 ml-12 rounded-full p-4 bg-white border border-gray-300">
-        <div className="flex items-center w-full">
+      <div className="fixed bottom-0 inset-x-0 px-4 py-5 bg-white border border-gray-300 rounded-t-lg">
+        <div className="flex items-center w-full max-w-lg mx-auto">
           <input
             type="text"
             placeholder="Type a message..."
-            className="flex-grow p-2 border rounded-full focus:outline-none focus:ring focus:border-blue-300"
+            className="flex-grow p-2 border rounded-full focus:outline-none focus:ring focus:border-blue-300 text-sm md:text-base"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
           />
           <button
             onClick={handleSendMessage}
-            className="bg-blue-500 text-white rounded-lg p-2 hover:bg-blue-600"
+            className="bg-blue-500 text-white rounded-lg p-2 ml-2 hover:bg-blue-600 text-sm md:text-base"
           >
             Send
           </button>
