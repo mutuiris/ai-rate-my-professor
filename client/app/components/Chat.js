@@ -3,11 +3,15 @@ import { FaUser } from "react-icons/fa";
 
 function ChatPage() {
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hi there! How can I help you find a professor?", sender: "other" },
-    { id: 1, text: "Hi there!", sender: "other", name: "PA" },
-    { id: 2, text: "Hello!", sender: "user" },
-    { id: 3, text: "How are you?", sender: "other", name: "PA" },
-    { id: 4, text: "I'm good, thanks! How about you?", sender: "user" },
+    {
+      id: 1,
+      text: "Hi there! How can I help you find a professor?",
+      sender: "other",
+    },
+    { id: 2, text: "Hi there!", sender: "other", name: "PA" },
+    { id: 3, text: "Hello!", sender: "user" },
+    { id: 4, text: "How are you?", sender: "other", name: "PA" },
+    { id: 5, text: "I'm good, thanks! How about you?", sender: "user" },
   ]);
 
   const [newMessage, setNewMessage] = useState("");
@@ -40,9 +44,7 @@ function ChatPage() {
 
         const data = await response.json();
         const recommendations = JSON.parse(data.reply);
-        formattedReply += recommendations.map(prof => 
-          `${prof.name} (${prof.department || 'Unknown Department'}): Rating ${prof.rating}, Similarity: ${prof.similarity.toFixed(2)}`
-        ).join('\n');
+
         const formattedReply = recommendations
           .map(
             (prof) =>
@@ -64,8 +66,6 @@ function ChatPage() {
           },
         ]);
       } catch (error) {
-        console.error('Error sending message:', error);
-        setMessages(prevMessages => [...prevMessages, { id: prevMessages.length + 1, text: "Sorry, there was an error processing your request. Please try again.", sender: "other" }]);
         console.error("Error sending message:", error);
         setMessages((prevMessages) => [
           ...prevMessages,
@@ -83,7 +83,7 @@ function ChatPage() {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex-1 p-4 overflow-y-auto">
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <div
             key={message.id}
             className={`flex items-center ${
