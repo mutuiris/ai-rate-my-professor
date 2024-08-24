@@ -1,5 +1,7 @@
 "use client";
 import * as React from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -22,7 +24,7 @@ import ChatIcon from "@mui/icons-material/Chat";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import Chat from "../components/Chat";
-import History from "../components/History"; // Import your History component
+import History from "../components/History";
 import { useRouter } from "next/navigation";
 
 const drawerWidth = 240;
@@ -51,8 +53,8 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
-  boxShadow: "0 2px 4px rgba(0,0,0,0.1)", // Slight shadow for depth
-  borderRadius: "8px", // Rounded corners
+  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  borderRadius: "8px",
   transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -78,9 +80,41 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 export default function PersistentDrawerLeft() {
   const router = useRouter();
   const theme = useTheme();
+  const { userId } = useAuth();
 
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  const [historyOpen, setHistoryOpen] = React.useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [currentChatName, setCurrentChatName] = useState("New Chat");
+  const [currentChatId, setCurrentChatId] = useState(null);
+
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (userId) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`);
+        const data = await response.json();
+        setChatHistory(data.chatHistory);
+      }
+    };
+
+    fetchChatHistory();
+  }, [userId]);
+
+  const updateChatName = (messages) => {
+    if (messages.length > 1) {
+      const context = messages[1].text.split(' ').slice(0, 3).join(' ');
+      setCurrentChatName(`Chat: ${context}...`);
+    }
+  };
+
+  const handleNewChat = () => {
+    setCurrentChatName("New Chat");
+    setChatHistory((prevHistory) => [
+      { id: Date.now(), name: "New Chat", messages: [] },
+      ...prevHistory,
+    ]);
+    setCurrentChatId(Date.now());
+  };
 
   const handleDrawerOpen = () => {
     setMenuOpen(true);
@@ -178,19 +212,21 @@ export default function PersistentDrawerLeft() {
         </DrawerHeader>
         <Divider />
         <List sx={{ flexGrow: 1 }}>
-          {["New Chat", "Chat 1", "Chat 2", "Chat 3"].map((text) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton
-                sx={{
-                  "&:hover": {
-                    backgroundColor: "#e0e0e0", // Darker on hover
-                  },
-                }}
-              >
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleNewChat}>
+              <ListItemIcon>
+                <AddIcon />
+              </ListItemIcon>
+              <ListItemText primary="New Chat" />
+            </ListItemButton>
+          </ListItem>
+          {chatHistory.map((chat, index) => (
+            <ListItem key={chat.id} disablePadding>
+              <ListItemButton>
                 <ListItemIcon>
-                  {text === "New Chat" ? <AddIcon /> : <ChatIcon />}
+                  <ChatIcon />
                 </ListItemIcon>
-                <ListItemText primary={text} />
+                <ListItemText primary={chat.name || `Chat ${index + 1}`} />
               </ListItemButton>
             </ListItem>
           ))}
@@ -215,12 +251,12 @@ export default function PersistentDrawerLeft() {
           onClick={toggleHistoryDrawer}
           onKeyDown={toggleHistoryDrawer}
         >
-          <History /> {/* Render History component here */}
+          <History chatHistory={chatHistory} />
         </Box>
       </Drawer>
       <Main open={menuOpen}>
         <DrawerHeader />
-        <Chat /> {/* Render ChatPage here */}
+        <Chat updateChatName={updateChatName} currentChatId={currentChatId} />
       </Main>
     </Box>
   );
