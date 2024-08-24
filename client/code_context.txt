@@ -18,6 +18,8 @@ export default async function handler(req, res) {
 // File: app/chat/page.js
 "use client";
 import * as React from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
@@ -40,7 +42,8 @@ import ChatIcon from "@mui/icons-material/Chat";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import Chat from "../components/Chat";
-import History from "../components/History"; // Import your History component
+import History from "../components/History";
+import SentimentDashboard from "../components/SentimentAnalysis";
 import { useRouter } from "next/navigation";
 
 const drawerWidth = 240;
@@ -69,8 +72,8 @@ const Main = styled("main", { shouldForwardProp: (prop) => prop !== "open" })(
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== "open",
 })(({ theme, open }) => ({
-  boxShadow: "0 2px 4px rgba(0,0,0,0.1)", // Slight shadow for depth
-  borderRadius: "8px", // Rounded corners
+  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  borderRadius: "8px",
   transition: theme.transitions.create(["margin", "width"], {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -96,9 +99,42 @@ const DrawerHeader = styled("div")(({ theme }) => ({
 export default function PersistentDrawerLeft() {
   const router = useRouter();
   const theme = useTheme();
+  const { userId } = useAuth();
 
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  const [historyOpen, setHistoryOpen] = React.useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState([]);
+  const [currentChatName, setCurrentChatName] = useState("New Chat");
+  const [currentChatId, setCurrentChatId] = useState(null);
+  const [currentProfessor, setCurrentProfessor] = useState(null);
+
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (userId) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`);
+        const data = await response.json();
+        setChatHistory(data.chatHistory);
+      }
+    };
+
+    fetchChatHistory();
+  }, [userId]);
+
+  const updateChatName = (messages) => {
+    if (messages.length > 1) {
+      const context = messages[1].text.split(' ').slice(0, 3).join(' ');
+      setCurrentChatName(`Chat: ${context}...`);
+    }
+  };
+
+  const handleNewChat = () => {
+    setCurrentChatName("New Chat");
+    setChatHistory((prevHistory) => [
+      { id: Date.now(), name: "New Chat", messages: [] },
+      ...prevHistory,
+    ]);
+    setCurrentChatId(Date.now());
+  };
 
   const handleDrawerOpen = () => {
     setMenuOpen(true);
@@ -114,6 +150,12 @@ export default function PersistentDrawerLeft() {
 
   const handleProfileClick = () => {
     router.push("/profile");
+  };
+
+  const handleChatSelect = (professorName) => {
+    setCurrentChatName(professorName);
+    setCurrentChatId(null);
+    setCurrentProfessor(professorName);
   };
 
   return (
@@ -196,19 +238,21 @@ export default function PersistentDrawerLeft() {
         </DrawerHeader>
         <Divider />
         <List sx={{ flexGrow: 1 }}>
-          {["New Chat", "Chat 1", "Chat 2", "Chat 3"].map((text) => (
-            <ListItem key={text} disablePadding>
-              <ListItemButton
-                sx={{
-                  "&:hover": {
-                    backgroundColor: "#e0e0e0", // Darker on hover
-                  },
-                }}
-              >
+          <ListItem disablePadding>
+            <ListItemButton onClick={handleNewChat}>
+              <ListItemIcon>
+                <AddIcon />
+              </ListItemIcon>
+              <ListItemText primary="New Chat" />
+            </ListItemButton>
+          </ListItem>
+          {chatHistory.map((chat, index) => (
+            <ListItem key={chat.id} disablePadding>
+              <ListItemButton>
                 <ListItemIcon>
-                  {text === "New Chat" ? <AddIcon /> : <ChatIcon />}
+                  <ChatIcon />
                 </ListItemIcon>
-                <ListItemText primary={text} />
+                <ListItemText primary={chat.name || `Chat ${index + 1}`} />
               </ListItemButton>
             </ListItem>
           ))}
@@ -233,12 +277,13 @@ export default function PersistentDrawerLeft() {
           onClick={toggleHistoryDrawer}
           onKeyDown={toggleHistoryDrawer}
         >
-          <History /> {/* Render History component here */}
+          <History chatHistory={chatHistory} />
+          <SentimentDashboard professorName={currentProfessor} />
         </Box>
       </Drawer>
       <Main open={menuOpen}>
         <DrawerHeader />
-        <Chat /> {/* Render ChatPage here */}
+        <Chat updateChatName={updateChatName} currentChatId={currentChatId} />
       </Main>
     </Box>
   );
@@ -504,8 +549,10 @@ export default AppAppBar;
 // File: app/components/Chat.js
 import React, { useState, useEffect, useRef } from "react";
 import { FaUser } from "react-icons/fa";
+import { useAuth } from "@clerk/nextjs";
 
 function ChatPage() {
+  const { userId } = useAuth();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -541,7 +588,7 @@ function ChatPage() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ message: newMessage }),
+            body: JSON.stringify({ message: newMessage, userId }),
           }
         );
 
@@ -1586,7 +1633,8 @@ export default function Highlights() {
 }
 
 // File: app/components/History.js
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@clerk/nextjs";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -1596,8 +1644,25 @@ import CardContent from "@mui/material/CardContent";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import SentimentDashboard from "./SentimentAnalysis";
 
 function History() {
+  const { userId } = useAuth;
+  const [chatHistory, setChatHistory] = useState([]);
+  const [selectedProfessor, setSelectedProfessor] = useState(null);
+
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (userId) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`);
+        const data = await response.json();
+        setChatHistory(data.chatHistory);
+      }
+    };
+
+    fetchChatHistory();
+  }, [userId]);
+
   const professionalTier = {
     title: "Professional",
     price: "15",
@@ -1616,20 +1681,25 @@ function History() {
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
           Chat History
         </h2>
-        {/* Display the chat history here */}
         <ul className="list-disc pl-5 space-y-2">
-          <li className="text-gray-600 hover:text-gray-900 transition duration-300">
-            History Item 1
-          </li>
-          <li className="text-gray-600 hover:text-gray-900 transition duration-300">
-            History Item 2
-          </li>
-          <li className="text-gray-600 hover:text-gray-900 transition duration-300">
-            History Item 3
-          </li>
-          {/* Add more history items as needed */}
+          {chatHistory.map((chat, index) => (
+            <li 
+              key={chat.id} 
+              className="text-gray-600 hover:text-gray-900 transition duration-300 cursor-pointer"
+              onClick={() => setSelectedProfessor(chat.professorName)}
+            >
+              {chat.name || `Chat ${index + 1}`}
+            </li>
+          ))}
         </ul>
       </div>
+      
+      {selectedProfessor && (
+        <div className="sentiment-dashboard p-4 bg-gray-100 rounded-md shadow-lg">
+          <SentimentDashboard professorName={selectedProfessor} />
+        </div>
+      )}
+
       <div className="pricing-component bg-white bg-opacity-50 backdrop-blur-md rounded-full shadow-lg border border-gray-300">
         <Card
           sx={{
@@ -2013,6 +2083,112 @@ export default function Pricing() {
     </Container>
   );
 }
+
+// File: app/components/SentimentAnalysis.js
+import React, { useEffect, useState } from "react";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+const SentimentDashboard = ({ professorName }) => {
+  const [sentimentData, setSentimentData] = useState(null);
+
+  useEffect(() => {
+    const fetchSentimentData = async () => {
+      if (professorName) {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/sentiment-trends/${professorName}`
+        );
+        const data = await response.json();
+        setSentimentData(data.trends);
+      }
+    };
+
+    fetchSentimentData();
+  }, [professorName]);
+
+  if (!professorName || !sentimentData) {
+    return <div>Select a professor to view sentiment analysis</div>;
+  }
+
+  const chartData = {
+    labels: sentimentData.map((entry) => entry.date),
+    datasets: [
+      {
+        label: "Sentiment Score",
+        data: sentimentData.map((entry) => entry.sentiment_score),
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 2,
+      },
+      {
+        label: "Rating",
+        data: sentimentData.map((entry) => entry.rating),
+        borderColor: "rgba(255, 99, 132)",
+        borderWidth: 2,
+      },
+    ],
+  };
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: "top",
+      },
+      title: {
+        display: true,
+        text: `Sentiment Trends for ${professorName}`,
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        max: 5,
+      },
+    },
+  };
+
+  return (
+    <div className="sentiment-dashboard">
+      <h2>Sentiment Analysis Dashboard</h2>
+      <Line data={chartData} options={options} />
+      <div className="sentiment-summary">
+        <h3>Summary</h3>
+        <p>
+          Average Sentiment:{" "}
+          {calculateAverage(sentimentData, "sentimentScore").toFixed(2)}
+        </p>
+        <p>
+          Average Rating: {calculateAverage(sentimentData, "rating").toFixed(2)}
+        </p>
+        <p>Total Reviews: {sentimentData.length}</p>
+      </div>
+    </div>
+  );
+};
+
+const calculateAverage = (data, key) => {
+  return data.reduce((sum, item) => sum + item[key], 0) / data.length;
+};
+
+export default SentimentDashboard;
 
 // File: app/components/Testimonials.js
 import * as React from "react";

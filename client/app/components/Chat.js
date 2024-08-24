@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaUser } from "react-icons/fa";
 import { useAuth } from "@clerk/nextjs";
+import { Skeleton } from "@mui/material";
 
 function ChatPage() {
   const { userId } = useAuth();
@@ -9,11 +10,12 @@ function ChatPage() {
       id: 1,
       text: "Hi there! How can I help you find a professor?",
       sender: "other",
-      name: "PA"
-    }
+      name: "PA",
+    },
   ]);
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -30,6 +32,7 @@ function ChatPage() {
       };
       setMessages((prevMessages) => [...prevMessages, userMessage]);
       setNewMessage("");
+      setIsLoading(true);
 
       try {
         const response = await fetch(
@@ -48,7 +51,7 @@ function ChatPage() {
         }
 
         const data = await response.json();
-        
+
         if (Array.isArray(data.reply)) {
           // Handle professor recommendations
           data.reply.forEach((prof) => {
@@ -56,7 +59,9 @@ function ChatPage() {
               ...prevMessages,
               {
                 id: prevMessages.length + 1,
-                text: `${prof.name} (${prof.department || "Unknown Department"}): Rating ${prof.rating}, ${prof.recommendation || ''}`,
+                text: `${prof.name} (${
+                  prof.department || "Unknown Department"
+                }): Rating ${prof.rating}, ${prof.recommendation || ""}`,
                 sender: "other",
                 name: "PA",
               },
@@ -85,6 +90,8 @@ function ChatPage() {
             name: "PA",
           },
         ]);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -126,6 +133,15 @@ function ChatPage() {
             )}
           </div>
         ))}
+        {isLoading && (
+          <div className="flex items-center justify-start mb-4">
+            <div className="flex flex-col items-center mr-2 text-gray-500">
+              <Skeleton variant="circular" width={32} height={32} />
+              <Skeleton variant="text" width={20} />
+            </div>
+            <Skeleton variant="rounded" width={200} height={40} />
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <div className="fixed bottom-0 inset-x-0 px-4 py-5 bg-white border border-gray-300 rounded-t-lg">
@@ -137,7 +153,7 @@ function ChatPage() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === "Enter") {
                 handleSendMessage();
               }
             }}
