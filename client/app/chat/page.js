@@ -25,6 +25,7 @@ import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import Chat from "../components/Chat";
 import History from "../components/History";
+import SentimentDashboard from "../components/SentimentAnalysis";
 import { useRouter } from "next/navigation";
 
 const drawerWidth = 240;
@@ -87,6 +88,7 @@ export default function PersistentDrawerLeft() {
   const [chatHistory, setChatHistory] = useState([]);
   const [currentChatName, setCurrentChatName] = useState("New Chat");
   const [currentChatId, setCurrentChatId] = useState(null);
+  const [currentProfessor, setCurrentProfessor] = useState(null);
 
   useEffect(() => {
     const fetchChatHistory = async () => {
@@ -130,6 +132,12 @@ export default function PersistentDrawerLeft() {
 
   const handleProfileClick = () => {
     router.push("/profile");
+  };
+
+  const handleChatSelect = (professorName) => {
+    setCurrentChatName(professorName);
+    setCurrentChatId(null);
+    setCurrentProfessor(professorName);
   };
 
   return (
@@ -252,6 +260,7 @@ export default function PersistentDrawerLeft() {
           onKeyDown={toggleHistoryDrawer}
         >
           <History chatHistory={chatHistory} />
+          <SentimentDashboard professorName={currentProfessor} />
         </Box>
       </Drawer>
       <Main open={menuOpen}>

@@ -33,14 +33,18 @@ router.post("/api/chat", async (req, res) => {
 
     // Check if it's a greeting or general question
     if (isGreetingOrGeneralQuestion(userMessage)) {
-      response = await fetchGeminiData(`Respond to this message: ${userMessage}`);
+      response = await fetchGeminiData(
+        `Respond to this message: ${userMessage}`
+      );
     } else {
       const refinedQuery = await fetchGeminiData(
         `Refine this search query for professor recommendations: ${userMessage}`
       );
       console.log("Refined Query:", refinedQuery);
 
-      const professorRecommendations = await queryPineconeForProfessor(refinedQuery);
+      const professorRecommendations = await queryPineconeForProfessor(
+        refinedQuery
+      );
       console.log("Pinecone Recommendations:", professorRecommendations);
 
       const personalizedRecommendations = await fetchGeminiData(`
@@ -109,13 +113,17 @@ router.post("/api/chat", async (req, res) => {
     }
 
     // Store chat history in Firestore
-    await addDoc(collection(db, "chatHistory"), {
-      userId,
-      userMessage,
-      response,
-      replyType,
-      timestamp: new Date(),
-    });
+    if (userId) {
+      await addDoc(collection(db, "chatHistory"), {
+        userId,
+        userMessage,
+        response,
+        replyType,
+        timestamp: new Date(),
+      });
+    } else {
+      console.warn("Chat history not saved: userId is undefined");
+    }
 
     res.json({ reply: response });
   } catch (error) {
@@ -138,14 +146,19 @@ router.get("/api/chat/history", async (req, res) => {
   const userId = req.query.userId;
 
   try {
-    const q = query(collection(db, "chatHistory"), where("userId", "==", userId));
+    const q = query(
+      collection(db, "chatHistory"),
+      where("userId", "==", userId)
+    );
     const querySnapshot = await getDocs(q);
-    const chatHistory = querySnapshot.docs.map(doc => doc.data());
+    const chatHistory = querySnapshot.docs.map((doc) => doc.data());
 
     return res.json({ chatHistory });
   } catch (error) {
     console.error("Error retrieving chat history:", error);
-    res.status(500).json({ error: 'Failed to retrieve chat history. Please try again.' });
+    res
+      .status(500)
+      .json({ error: "Failed to retrieve chat history. Please try again." });
   }
 });
 
