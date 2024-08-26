@@ -13,6 +13,11 @@ An AI-powered system for professor ratings and recommendations. This project is 
 
 - [ai-rate-my-professor](#ai-rate-my-professor)
   - [Table of Contents](#table-of-contents)
+  - [How It Works](#how-it-works)
+  - [Pinecone Integration](#pinecone-integration)
+  - [Web Scraping](#web-scraping)
+  - [Sentiment Analysis](#sentiment-analysis)
+  - [AI-Powered Recommendations](#ai-powered-recommendations)
   - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
     - [Installation](#installation)
@@ -30,6 +35,82 @@ An AI-powered system for professor ratings and recommendations. This project is 
   - [Roadmap](#roadmap)
   - [Contributing](#contributing)
   - [License](#license)
+
+## How It Works
+
+### Pinecone Integration
+
+We use Pinecone, a vector database, to store and query professor data efficiently.
+
+1. Professor data is embedded using the `getEmbedding` function.
+2. The embedded data is stored in Pinecone using the `addProfessorToPinecone` function.
+3. When users query for professors, we use Pinecone's similarity search to find relevant matches.
+
+![Pinecone Integration Diagram](./path/to/pinecone_diagram.png)
+
+```javascript:server/service/pineconeService.js
+export async function addProfessorToPinecone(professorData) {
+  const index = pc.Index("rag");
+  const vector = await getEmbedding(professorData.review);
+  const sentiment = await analyzeSentiment(professorData.review);
+  
+  const pineconeData = {
+    id: professorData.name.replace(/\s+/g, "-").toLowerCase(),
+    values: vector,
+    metadata: {
+      name: professorData.name,
+      department: professorData.department,
+      rating: professorData.rating,
+      review: professorData.review,
+      sentiment: sentiment,
+      timestamp: new Date().toISOString(),
+    },
+  };
+  
+  await index.upsert([pineconeData]);
+}
+```
+
+### Web Scraping
+
+Our application can scrape professor data from websites to enrich our database.
+
+1. Users provide a URL and a query in the chat interface.
+2. The `scrapeProfessorData` function extracts relevant information from the webpage.
+3. The scraped data is then processed and stored in Pinecone.
+
+```javascript:server/service/scraper.js
+export async function scrapeProfessorData(url) {
+  const browser = await puppeteer.launch({ headless: "new" });
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: 'networkidle0' });
+
+  const professorData = await page.evaluate(() => {
+    // Scraping logic here
+  });
+
+  await browser.close();
+  return professorData;
+}
+```
+
+### Sentiment Analysis
+We use the `analyzeSentiment` function to determine the sentiment of professor reviews.
+
+```javascript:server/service/sentimentService.js
+export async function analyzeSentiment(text) {
+  if (!sentimentModel) {
+    sentimentModel = await pipeline('sentiment-analysis', 'Xenova/distilbert-base-uncased-finetuned-sst-2-english');
+  }
+
+  const result = await sentimentModel(text);
+  return result[0].label.toLowerCase();
+}
+```
+
+### AI-Powered Recommendations
+Our AI-powered recommendation system uses Pinecone's similarity search to find professors with similar sentiments.
+
 
 ## Getting Started
 
@@ -124,6 +205,8 @@ ai-rate-my-professor/
 - **Trend Analysis**: Track sentiment trends over time.
 - **User Testimonials**: Display user testimonials on the client side.
 - **Social Media Integration**: Links to social media profiles in the footer.
+- **AI-powered** professor recommendations.
+- **Web scraping** for additional professor data
 
 ## Usage
 
