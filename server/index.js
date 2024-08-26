@@ -13,24 +13,24 @@ global.fetch = fetch;
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Apply CORS globally with correct settings
 app.use(cors({
-  origin: 'https://professera-ai.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // Allow cookies to be sent
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Automatically respond to preflight requests
-app.options('*', cors());
-
-// Body parser middleware
+app.use(cors());
 app.use(express.json());
+app.use('/', chatRoutes);
+app.use('/', professorRoutes);
+app.use('/', scrapingRoutes);
 
-// Register your routes with proper prefixes
-app.use('/api', chatRoutes);
-app.use('/api', professorRoutes);
-app.use('/api', scrapingRoutes);
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`Professor rating app listening at http://localhost:${port}`);
+  });
+}
 
 export default app;
