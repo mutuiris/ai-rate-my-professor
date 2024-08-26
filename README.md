@@ -46,7 +46,6 @@ We use Pinecone, a vector database, to store and query professor data efficientl
 2. The embedded data is stored in Pinecone using the `addProfessorToPinecone` function.
 3. When users query for professors, we use Pinecone's similarity search to find relevant matches.
 
-![Pinecone Integration Diagram](./path/to/pinecone_diagram.png)
 
 ```javascript:server/service/pineconeService.js
 export async function addProfessorToPinecone(professorData) {
