@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaUser } from "react-icons/fa";
+import { FaUser, FaPaperclip } from "react-icons/fa";
 import { useAuth } from "@clerk/nextjs";
 import { Skeleton } from "@mui/material";
 
@@ -16,6 +16,8 @@ function ChatPage() {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [isScrapingMode, setIsScrapingMode] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,7 +55,6 @@ function ChatPage() {
         const data = await response.json();
 
         if (Array.isArray(data.reply)) {
-          // Handle professor recommendations
           data.reply.forEach((prof) => {
             setMessages((prevMessages) => [
               ...prevMessages,
@@ -68,7 +69,6 @@ function ChatPage() {
             ]);
           });
         } else {
-          // Handle general responses
           setMessages((prevMessages) => [
             ...prevMessages,
             {
@@ -93,6 +93,61 @@ function ChatPage() {
       } finally {
         setIsLoading(false);
       }
+    }
+  };
+
+  const handleScrape = async () => {
+    if (!websiteUrl.trim() || !newMessage.trim()) {
+      alert("Please enter both a website URL and a query.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/scrape`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url: websiteUrl, query: newMessage, userId }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: prevMessages.length + 1,
+          text: data.reply,
+          sender: "other",
+          name: "PA",
+        },
+      ]);
+
+      setWebsiteUrl("");
+      setNewMessage("");
+      setIsScrapingMode(false);
+    } catch (error) {
+      console.error("Error scraping website:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: prevMessages.length + 1,
+          text: "Sorry, there was an error scraping the website. Please try again.",
+          sender: "other",
+          name: "PA",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -146,20 +201,35 @@ function ChatPage() {
       </div>
       <div className="fixed bottom-0 inset-x-0 px-4 py-5 bg-white border border-gray-300 rounded-t-lg">
         <div className="flex items-center w-full max-w-lg mx-auto">
+          {isScrapingMode && (
+            <input
+              type="text"
+              placeholder="Enter website URL"
+              className="flex-grow p-2 border rounded-full focus:outline-none focus:ring focus:border-blue-300 text-sm md:text-base mb-2"
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+            />
+          )}
           <input
             type="text"
-            placeholder="Search for professors or ask a question..."
+            placeholder={isScrapingMode ? "Enter your query" : "Search for professors or ask a question..."}
             className="flex-grow p-2 border rounded-full focus:outline-none focus:ring focus:border-blue-300 text-sm md:text-base"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => {
               if (e.key === "Enter") {
-                handleSendMessage();
+                isScrapingMode ? handleScrape() : handleSendMessage();
               }
             }}
           />
           <button
-            onClick={handleSendMessage}
+            onClick={() => setIsScrapingMode(!isScrapingMode)}
+            className="bg-gray-200 text-gray-600 rounded-full p-2 ml-2 hover:bg-gray-300"
+          >
+            <FaPaperclip />
+          </button>
+          <button
+            onClick={isScrapingMode ? handleScrape : handleSendMessage}
             className="bg-blue-500 text-white rounded-lg p-2 ml-2 hover:bg-blue-600 text-sm md:text-base"
           >
             Send
