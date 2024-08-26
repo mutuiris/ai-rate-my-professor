@@ -24,9 +24,11 @@ import ChatIcon from "@mui/icons-material/Chat";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { ThemeProvider } from "@mui/material/styles";
 import Chat from "../components/Chat";
 import History from "../components/History";
 import SentimentDashboard from "../components/SentimentAnalysis";
+import theme from "../theme";
 import { useRouter } from "next/navigation";
 
 const drawerWidth = 240;
@@ -77,6 +79,18 @@ const DrawerHeader = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 1),
   ...theme.mixins.toolbar,
   justifyContent: "flex-end",
+}));
+
+const StyledListItemButton = styled(ListItemButton)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: theme.palette.action.hover,
+  },
+  '&.Mui-selected': {
+    backgroundColor: theme.palette.action.selected,
+    '&:hover': {
+      backgroundColor: theme.palette.action.selected,
+    },
+  },
 }));
 
 export default function PersistentDrawerLeft() {
@@ -163,135 +177,158 @@ export default function PersistentDrawerLeft() {
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-      <AppBar
-        position="fixed"
-        open={menuOpen}
-        sx={{
-          width: { xs: "calc(100% - 32px)", sm: "calc(100% - 64px)" },
-          ml: { xs: "16px", sm: "32px" },
-          mr: { xs: "16px", sm: "32px" },
-          mt: 2,
-          borderRadius: "30px",
-          backgroundColor: "#E7F2FE",
-          color: "#000",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-          transition: theme.transitions.create(["margin", "width"], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-          }),
-          ...(menuOpen && {
-            width: `calc(100% - ${drawerWidth}px - 64px)`,
-            ml: `${drawerWidth}px`,
-          }),
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            sx={{ mr: 2, ...(menuOpen && { display: "none" }) }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Professora AI
-          </Typography>
-          <IconButton
-            color="inherit"
-            aria-label="open history"
-            onClick={toggleHistoryDrawer}
-            edge="end"
-            sx={{ ml: "auto" }}
-          >
-            <HistoryIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-
-      <Drawer
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            gap: 2,
-            backgroundColor: "#f0f0f0",
-          },
-        }}
-        variant="persistent"
-        anchor="left"
-        open={menuOpen}
-      >
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "ltr" ? (
-              <ChevronLeftIcon />
-            ) : (
-              <ChevronRightIcon />
-            )}
-          </IconButton>
-        </DrawerHeader>
-        <Divider />
-        <List sx={{ flexGrow: 1 }}>
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleNewChat}>
-              <ListItemIcon>
-                <AddIcon />
-              </ListItemIcon>
-              <ListItemText primary="New Chat" />
-            </ListItemButton>
-          </ListItem>
-          {chatHistory.map((chat, index) => (
-            <ListItem key={chat.id} disablePadding>
-              <ListItemButton onClick={() => handleChatSelect(chat.id)}>
-                <ListItemIcon>
-                  <ChatIcon />
-                </ListItemIcon>
-                <ListItemText primary={chat.name || `Chat ${index + 1}`} />
-              </ListItemButton>
-              <IconButton onClick={() => handleDeleteChat(chat.id)}>
-                <DeleteIcon />
-              </IconButton>
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <List>
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleProfileClick}>
-              <ListItemIcon>
-                <PersonIcon />
-              </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </ListItemButton>
-          </ListItem>
-        </List>
-      </Drawer>
-
-      <Drawer anchor="right" open={historyOpen} onClose={toggleHistoryDrawer}>
-        <Box
-          sx={{ width: 350 }}
-          role="presentation"
-          onClick={toggleHistoryDrawer}
-          onKeyDown={toggleHistoryDrawer}
+    <ThemeProvider theme={theme}>
+      <Box sx={{ display: "flex" }}>
+        <CssBaseline />
+        <AppBar
+          position="fixed"
+          open={menuOpen}
+          sx={{
+            width: { xs: "100% - 32px", sm: "calc(100% - 64px)" },
+            ml: { xs: 0, sm: "32px" },
+            mr: { xs: 0, sm: "32px" },
+            mt: { xs: 0, sm: 2 },
+            borderRadius: { xs: 0, sm: "30px" },
+            backgroundColor: "#E7F2FE",
+            color: "#000",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+            transition: theme.transitions.create(["margin", "width"], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.leavingScreen,
+            }),
+            ...(menuOpen && {
+              width: { xs: "100%", sm: `calc(100% - ${drawerWidth}px - 64px)` },
+              ml: { xs: 0, sm: `${drawerWidth}px` },
+            }),
+          }}
         >
-          <History chatHistory={chatHistory} />
-          <SentimentDashboard professorName={currentProfessor} />
-        </Box>
-      </Drawer>
-      <Main open={menuOpen}>
-        <DrawerHeader />
-        <Chat updateChatName={updateChatName} currentChatId={currentChatId} />
-      </Main>
-    </Box>
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={handleDrawerOpen}
+              edge="start"
+              sx={{ mr: 2, ...(menuOpen && { display: "none" }) }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" noWrap component="div">
+              Professora AI
+            </Typography>
+            <IconButton
+              color="inherit"
+              aria-label="open history"
+              onClick={toggleHistoryDrawer}
+              edge="end"
+              sx={{ ml: "auto" }}
+            >
+              <HistoryIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+
+        <Drawer
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            "& .MuiDrawer-paper": {
+              width: drawerWidth,
+              boxSizing: "border-box",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              gap: 2,
+              backgroundColor: theme.palette.background.default,
+            },
+          }}
+          variant="persistent"
+          anchor="left"
+          open={menuOpen}
+        >
+          <DrawerHeader>
+            <IconButton onClick={handleDrawerClose}>
+              {theme.direction === "ltr" ? (
+                <ChevronLeftIcon />
+              ) : (
+                <ChevronRightIcon />
+              )}
+            </IconButton>
+          </DrawerHeader>
+          <Divider />
+          <List sx={{ flexGrow: 1 }}>
+            <ListItem disablePadding>
+              <StyledListItemButton onClick={handleNewChat}>
+                <ListItemIcon>
+                  <AddIcon />
+                </ListItemIcon>
+                <ListItemText primary="New Chat" />
+              </StyledListItemButton>
+            </ListItem>
+            {chatHistory.map((chat) => (
+              <ListItem
+                key={chat.id}
+                disablePadding
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() => handleDeleteChat(chat.id)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                }
+              >
+                <StyledListItemButton
+                  onClick={() => handleChatSelect(chat.id)}
+                  selected={currentChatId === chat.id}
+                >
+                  <ListItemIcon>
+                    <ChatIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={chat.name || `Chat`} />
+                </StyledListItemButton>
+              </ListItem>
+            ))}
+          </List>
+          <Divider />
+          <List>
+            <ListItem disablePadding>
+              <StyledListItemButton onClick={handleProfileClick}>
+                <ListItemIcon>
+                  <PersonIcon />
+                </ListItemIcon>
+                <ListItemText primary="Profile" />
+              </StyledListItemButton>
+            </ListItem>
+          </List>
+        </Drawer>
+
+        <Drawer
+          anchor="right"
+          open={historyOpen}
+          onClose={toggleHistoryDrawer}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: { xs: '100%', sm: 350 },
+            },
+          }}
+        >
+          <Box
+            sx={{ width: { xs: '100%', sm: 350 } }}
+            role="presentation"
+            onClick={toggleHistoryDrawer}
+            onKeyDown={toggleHistoryDrawer}
+          >
+            <History chatHistory={chatHistory} />
+            <SentimentDashboard professorName={currentProfessor} />
+          </Box>
+        </Drawer>
+        <Main open={menuOpen}>
+          <DrawerHeader />
+          <Chat updateChatName={updateChatName} currentChatId={currentChatId} />
+        </Main>
+      </Box>
+    </ThemeProvider>
   );
 }
