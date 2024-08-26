@@ -19,7 +19,7 @@ function History() {
   useEffect(() => {
     const fetchChatHistory = async () => {
       if (userId) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}api/chat/history?userId=${userId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`);
         const data = await response.json();
         setChatHistory(data.chatHistory);
       }

@@ -14,25 +14,23 @@ dotenv.config();
 
 const app = express();
 
+// Apply CORS globally with correct settings
 app.use(cors({
   origin: 'https://professera-ai.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Allow cookies to be sent
 }));
 
+// Automatically respond to preflight requests
 app.options('*', cors());
 
+// Body parser middleware
 app.use(express.json());
-app.use('', chatRoutes);
-app.use('', professorRoutes);
-app.use('', scrapingRoutes);
 
-// Add this middleware to handle CORS errors
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://professera-ai.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
+// Register your routes with proper prefixes
+app.use('/api', chatRoutes);
+app.use('/api', professorRoutes);
+app.use('/api', scrapingRoutes);
 
 export default app;
