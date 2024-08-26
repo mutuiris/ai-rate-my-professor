@@ -27,4 +27,12 @@ app.use('', chatRoutes);
 app.use('', professorRoutes);
 app.use('', scrapingRoutes);
 
+// Add this middleware to handle CORS errors
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://professera-ai.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
 export default app;
