@@ -23,6 +23,7 @@ import ListItemText from "@mui/material/ListItemText";
 import ChatIcon from "@mui/icons-material/Chat";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
+import DeleteIcon from "@mui/icons-material/Delete";
 import Chat from "../components/Chat";
 import History from "../components/History";
 import SentimentDashboard from "../components/SentimentAnalysis";
@@ -93,7 +94,9 @@ export default function PersistentDrawerLeft() {
   useEffect(() => {
     const fetchChatHistory = async () => {
       if (userId) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`
+        );
         const data = await response.json();
         setChatHistory(data.chatHistory);
       }
@@ -104,18 +107,25 @@ export default function PersistentDrawerLeft() {
 
   const updateChatName = (messages) => {
     if (messages.length > 1) {
-      const context = messages[1].text.split(' ').slice(0, 3).join(' ');
-      setCurrentChatName(`Chat: ${context}...`);
+      const context = messages[1].text.split(" ").slice(0, 3).join(" ");
+      const newName = `Chat: ${context}...`;
+      setCurrentChatName(newName);
+      setChatHistory((prevHistory) =>
+        prevHistory.map((chat) =>
+          chat.id === currentChatId ? { ...chat, name: newName } : chat
+        )
+      );
     }
   };
 
   const handleNewChat = () => {
+    const newChatId = Date.now();
     setCurrentChatName("New Chat");
+    setCurrentChatId(newChatId);
     setChatHistory((prevHistory) => [
-      { id: Date.now(), name: "New Chat", messages: [] },
+      { id: newChatId, name: "New Chat", messages: [] },
       ...prevHistory,
     ]);
-    setCurrentChatId(Date.now());
   };
 
   const handleDrawerOpen = () => {
@@ -134,10 +144,22 @@ export default function PersistentDrawerLeft() {
     router.push("/profile");
   };
 
-  const handleChatSelect = (professorName) => {
-    setCurrentChatName(professorName);
-    setCurrentChatId(null);
-    setCurrentProfessor(professorName);
+  const handleChatSelect = (chatId) => {
+    const selectedChat = chatHistory.find((chat) => chat.id === chatId);
+    if (selectedChat) {
+      setCurrentChatName(selectedChat.name);
+      setCurrentChatId(chatId);
+      setCurrentProfessor(selectedChat.professorName);
+    }
+  };
+
+  const handleDeleteChat = (chatId) => {
+    setChatHistory((prevHistory) =>
+      prevHistory.filter((chat) => chat.id !== chatId)
+    );
+    if (currentChatId === chatId) {
+      handleNewChat();
+    }
   };
 
   return (
@@ -230,12 +252,15 @@ export default function PersistentDrawerLeft() {
           </ListItem>
           {chatHistory.map((chat, index) => (
             <ListItem key={chat.id} disablePadding>
-              <ListItemButton>
+              <ListItemButton onClick={() => handleChatSelect(chat.id)}>
                 <ListItemIcon>
                   <ChatIcon />
                 </ListItemIcon>
                 <ListItemText primary={chat.name || `Chat ${index + 1}`} />
               </ListItemButton>
+              <IconButton onClick={() => handleDeleteChat(chat.id)}>
+                <DeleteIcon />
+              </IconButton>
             </ListItem>
           ))}
         </List>

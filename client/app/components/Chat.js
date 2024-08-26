@@ -3,7 +3,7 @@ import { FaUser, FaPaperclip } from "react-icons/fa";
 import { useAuth } from "@clerk/nextjs";
 import { Skeleton } from "@mui/material";
 
-function ChatPage() {
+function ChatPage({ updateChatName, currentChatId }) {
   const { userId } = useAuth();
   const [messages, setMessages] = useState([
     {
@@ -25,6 +25,12 @@ function ChatPage() {
 
   useEffect(scrollToBottom, [messages]);
 
+  useEffect(() => {
+    if (messages.length > 1) {
+      updateChatName(messages);
+    }
+  }, [messages, updateChatName]);
+
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
       const userMessage = {
@@ -44,7 +50,7 @@ function ChatPage() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ message: newMessage, userId }),
+            body: JSON.stringify({ message: newMessage, userId, chatId: currentChatId }),
           }
         );
 
