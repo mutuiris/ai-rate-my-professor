@@ -109,7 +109,7 @@ export default function PersistentDrawerLeft() {
     const fetchChatHistory = async () => {
       if (userId) {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/history?userId=${userId}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}api/chat/history?userId=${userId}`
         );
         const data = await response.json();
         setChatHistory(data.chatHistory);

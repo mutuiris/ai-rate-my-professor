@@ -44,7 +44,7 @@ function ChatPage({ updateChatName, currentChatId }) {
 
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}api/chat`,
           {
             method: "POST",
             headers: {
@@ -112,7 +112,7 @@ function ChatPage({ updateChatName, currentChatId }) {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/scrape`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}api/scrape`,
         {
           method: "POST",
           headers: {
