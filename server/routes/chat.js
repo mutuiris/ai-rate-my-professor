@@ -6,7 +6,7 @@ import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 
 const router = express.Router();
 
-router.post("/api/chat", async (req, res) => {
+router.post("api/chat", async (req, res) => {
   const userMessage = req.body.message;
   const userId = req.body.userId;
 
@@ -151,7 +151,7 @@ router.post("/api/chat", async (req, res) => {
 });
 
 // Route to retrieve chat history
-router.get("/api/chat/history", async (req, res) => {
+router.get("api/chat/history", async (req, res) => {
   const userId = req.query.userId;
 
   try {

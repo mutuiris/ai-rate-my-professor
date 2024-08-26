@@ -4,7 +4,7 @@ import { fetchGeminiData } from "../api/geminiApi.js";
 
 const router = express.Router();
 
-router.post("/api/scrape", async (req, res) => {
+router.post("api/scrape", async (req, res) => {
   try {
     const { url, query } = req.body;
 

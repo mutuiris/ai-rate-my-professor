@@ -4,7 +4,7 @@ import { querySentimentTrends } from '../service/pineconeService.js';
 
 const router = express.Router();
 
-router.post('/api/add-professor', async (req, res) => {
+router.post('api/add-professor', async (req, res) => {
   try {
     const professorData = req.body;
     console.log('Received professor data:', professorData);
@@ -24,7 +24,7 @@ router.post('/api/add-professor', async (req, res) => {
   }
 });
 
-router.get('/api/sentiment-trends/:professorName', async (req, res) => {
+router.get('api/sentiment-trends/:professorName', async (req, res) => {
   const { professorName } = req.params;
 
   try {

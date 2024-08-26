@@ -16,8 +16,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use('/', chatRoutes);
-app.use('/', professorRoutes);
-app.use('/', scrapingRoutes);
+app.use('', chatRoutes);
+app.use('', professorRoutes);
+app.use('', scrapingRoutes);
 
 export default app;
