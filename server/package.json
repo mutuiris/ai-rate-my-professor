@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "postinstall": "npm install --platform=linux --arch=x64 sharp"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +22,6 @@
     "firebase": "^10.13.0",
     "node-fetch": "^3.3.2",
     "nodemon": "^3.1.4",
-    "puppeteer": "^23.1.1",
-    "sharp": "^0.31.3"
+    "puppeteer": "^23.1.1"
   }
 }
