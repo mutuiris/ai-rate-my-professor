@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "prebuild": "npm install --ignore-scripts=false --foreground-scripts --verbose sharp"
+    "prebuild": "npm install --ignore-scripts=false --foreground-scripts --verbose sharp",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
