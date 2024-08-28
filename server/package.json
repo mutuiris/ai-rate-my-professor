@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prebuild": "npm install --ignore-scripts=false --foreground-scripts --verbose sharp",
-    "start": "node index.js"
+    "start": "nodemon index.js",
+    "postinstall": "npm rebuild"
   },
   "keywords": [],
   "author": "",
