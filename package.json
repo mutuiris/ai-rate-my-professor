@@ -1,0 +1,10 @@
+{
+  "name": "ai-rate-my-professor",
+  "version": "1.0.0",
+  "engines": {
+    "node": "20.x"
+  },
+  "scripts": {
+    "start": "cd server && npm install && npm start"
+  }
+}
