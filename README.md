@@ -1,11 +1,11 @@
 # ai-rate-my-professor
 Authors:
 
-Azamat Medetbekov, Kyrgyzstan, TK
-Tracy Karanja, Nairobi, Kenya
-Sudharshana B, TamilNadu, India
-Addy Mutuiri, Nairobi, Kenya
-Swapnil Garg, United Kingdom
+- Azamat Medetbekov, Kyrgyzstan, TK
+- Tracy Karanja, Nairobi, Kenya
+- Sudharshana B, TamilNadu, India
+- Addy Mutuiri, Nairobi, Kenya
+- Swapnil Garg, United Kingdom
 
 ![Professor Image](./client/static/images/templates/templates-images/professor.png)
 
